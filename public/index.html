@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>BillChill Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #eef2f3;
+            display: flex;
+            justify-content: center;
+            padding: 50px;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+        }
+
+        .cost {
+            font-weight: bold;
+            color: #2d3436;
+        }
+
+        .empty-msg {
+            text-align: center;
+            color: #888;
+            padding: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>📊 My Subscriptions</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Service</th>
+                    <th>Cost</th>
+                    <th>Next Bill</th>
+                </tr>
+            </thead>
+            <tbody id="sub-table">
+            </tbody>
+        </table>
+        <div id="no-data" class="empty-msg" style="display:none;">No subscriptions found.</div>
+    </div>
+
+    <script>
+        async function loadData() {
+            try {
+                const response = await fetch('/subscriptions');
+                const data = await response.json();
+                const tableBody = document.getElementById('sub-table');
+
+                if (data.length === 0) {
+                    document.getElementById('no-data').style.display = 'block';
+                    return;
+                }
+
+                tableBody.innerHTML = data.map(sub => `
+                    <tr>
+                        <td><strong>${sub.name}</strong></td>
+                        <td class="cost">$${sub.cost}</td>
+                        <td>${new Date(sub.next_billing_date).toLocaleDateString()}</td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error("Failed to load data:", err);
+            }
+        }
+        loadData();
+    </script>
+</body>
+
+</html>

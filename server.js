@@ -1,14 +1,15 @@
 require('dotenv').config();
 const express = require('express');
 const { Pool } = require('pg');
-const bcrypt = require('bcrypt');
 
 const app = express();
-const port = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
 
+// Middleware
 app.use(express.json());
+app.use(express.static('public')); // This looks for index.html inside the 'public' folder
 
-// PostgreSQL database connection
+// Database Connection
 const pool = new Pool({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
@@ -17,27 +18,17 @@ const pool = new Pool({
   port: process.env.DB_PORT || 5432,
 });
 
-pool.on('error', (err, client) => {
-  console.error('Unexpected error on idle client', err);
-  process.exit(-1);
-});
-
-// Basic route to test the server
-app.get('/', (req, res) => {
-  res.send('Welcome to the BillChill API!');
-});
-
-// Endpoint to verify DB connection
-app.get('/db-test', async (req, res) => {
+// The Data Route
+app.get('/subscriptions', async (req, res) => {
   try {
-    const result = await pool.query('SELECT NOW()');
-    res.json({ success: true, timestamp: result.rows[0].now });
+    const result = await pool.query('SELECT name, cost, next_billing_date FROM subscriptions');
+    res.json(result.rows);
   } catch (err) {
-    console.error('Database connection error:', err);
-    res.status(500).json({ error: 'Failed to connect to the database' });
+    console.error(err.message);
+    res.status(500).send("Server Error");
   }
 });
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
