@@ -61,6 +61,12 @@
 <body>
     <div class="container">
         <h1>📊 My Subscriptions</h1>
+        <div class="form-container">
+            <input type="text" id="name" placeholder="Service Name" required>
+            <input type="number" id="cost" placeholder="Cost" step="0.01" required>
+            <input type="date" id="date" required>
+            <button onclick="addSubscription()">➕ Add Bill</button>
+        </div>
         <table>
             <thead>
                 <tr>
@@ -90,12 +96,43 @@
                 tableBody.innerHTML = data.map(sub => `
                     <tr>
                         <td><strong>${sub.name}</strong></td>
-                        <td class="cost">$${sub.cost}</td>
+                        <td>${sub.cost} zł</td>
                         <td>${new Date(sub.next_billing_date).toLocaleDateString()}</td>
                     </tr>
                 `).join('');
             } catch (err) {
                 console.error("Failed to load data:", err);
+            }
+        }
+        async function addSubscription() {
+            const name = document.getElementById('name').value;
+            const cost = document.getElementById('cost').value;
+            const date = document.getElementById('date').value;
+
+            if (!name || !cost || !date) {
+                return alert("Please fill in all fields!");
+            }
+
+            try {
+                const response = await fetch('/subscriptions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: name,
+                        cost: parseFloat(cost),
+                        next_billing_date: date
+                    })
+                });
+
+                if (response.ok) {
+                    alert("✅ Spotify Added!");
+                    location.reload();
+                } else {
+                    const errorText = await response.text();
+                    alert("Server said: " + errorText);
+                }
+            } catch (err) {
+                alert("Connection failed: " + err);
             }
         }
         loadData();
